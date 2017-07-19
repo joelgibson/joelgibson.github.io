@@ -1,0 +1,138 @@
+@media all {html {font-size: 16px;}}
+@media all and (max-width:960px){html {font-size: 16px;}}
+@media all and (max-width:900px){html {font-size: 15.5px;}}
+@media all and (max-width:840px){html {font-size: 15.0px;}}
+@media all and (max-width:780px){html {font-size: 14.5px;}}
+@media all and (max-width:720px){html {font-size: 14.0px;}}
+@media all and (max-width:660px){html {font-size: 13.5px;}}
+@media all and (max-width:600px){html {font-size: 13.0px;}}
+@media all and (max-width:540px){html {font-size: 12.5px;}}
+@media all and (max-width:480px){html {font-size: 12.0px;}}
+
+
+
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  max-width: 960px;
+  min-width: 520px;
+  position: relative;
+}
+
+body > * {
+  font-size: 100%;
+  margin-left: 2rem;
+  margin-right: 13rem;
+}
+
+aside {
+  display: block;
+  float: right;
+  position: absolute;
+  margin-right: 0;
+  right: 2rem;
+  width: 9.5rem;
+  clear: both;
+  font-size: 0.8rem;
+}
+
+body, li, p {
+  font-family: "Source Serif Pro", Georgia, Times, "Times New Roman", serif;
+  color: #3c3c3c;
+  word-wrap: break-word;
+}
+
+header {
+  margin-top: 0.5em;
+  border-bottom: 1px solid #aaa;
+  height: 1.5em;
+}
+header a {
+  color: #333;
+  text-decoration: none;
+}
+header a:visited {
+  color: #333;
+}
+
+proof { display: block; padding-left: 0.5em; margin-left: 0.5em; border-left: 3px solid #aaa;}
+
+p, li {
+  line-height: 1.35;
+}
+
+p {
+  margin-bottom: 1.8rem;
+}
+li {
+  margin-bottom: 0.8rem;
+  margin-left: 2rem;
+}
+
+svg {
+  display: block;
+  margin: 0 auto;
+}
+
+h1 {
+  margin-top: 1rem;
+}
+
+aside svg {
+  width: 80%;
+}
+
+h1, h2, h3 {
+  font-family: "Source Sans Pro", sans-serif;
+  font-weight: 300;
+  text-rendering: optimizeLegibility;
+}
+h1 {
+  font-size: 2.5em;
+  margin-bottom: 0.5rem;
+}
+h2 {
+  font-size: 1.5em;
+}
+h2, h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+aside svg {
+  display: block;
+}
+
+pre, code {
+  font-family: "Source Code Pro", monospace;
+  font-size: 0.95em;
+  line-height: 1.3em;
+}
+
+.todo {
+  color: red;
+}
+
+todo {
+  line-height: 1.25em;
+  font-size: 0.85em;
+  position: absolute;
+  left: -120px;
+  width: 120px;
+  color: red;
+  text-align: right;
+}
+
+svg line {
+  stroke-width: 2px;
+  stroke: black;
+}
+
+.katex { font-size: 1.1em !important; }

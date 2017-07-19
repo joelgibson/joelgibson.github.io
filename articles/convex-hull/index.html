@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Convex Hull</title>
+<meta name="author" content="Joel Gibson">
+<link rel="stylesheet" type="text/css" href="/style.css">
+<link rel="stylesheet" href="/libraries/katex/katex.min.css">
+<script type="text/javascript" src="/libraries/katex/katex.min.js"></script>
+</head>
+<body>
+<header>
+<a href="/" title="Home">Home</a>
+</header>
+<h1>Convex Hull</h1><aside><svg height="102" version="1.1" viewBox="0 0 102 102" width="102" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="surface136"><path d="M 41 81 C 32.953125 75.917969 26.6875 68.617188 21 61 C -3.003906 28.84375 30.773438 5.15625 41 21 C 44.878906 27.011719 39.359375 34.355469 41 41 C 45.421875 58.902344 73.660156 46.660156 81 61 C 89.210938 77.042969 65.507812 96.480469 41 81 " style="fill:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 31 27 C 44.332031 39 57.667969 51 71 63 " style="fill:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(100%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 31 27 L 31 27 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 71 63 L 71 63 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path></g></svg>
+This shape is not convex, because there are two points which lie inside the shape, but the line segment connecting them does not.</aside><p>
+A set of points is called <em>convex</em> if any two points in the set can be connected by a straight line that does not leave the set. For example, all regular polygons have convex interiors, but “bent” shapes or shapes with “holes” in them may not.</p><p>The <em>convex hull</em> of a set of points is the smallest convex set containing all of the points. In mathematical terms, the convex hull of any set <math-inline>S</math-inline> is the intersection of every convex set containing <math-inline>S</math-inline>. In the image below, if <math-inline>S</math-inline> is taken to be the set of points in the plane shown on the left, the convex hull of <math-inline>S</math-inline> is the filled set shown in the middle. Because we’re starting here from a finite set of points, the convex hull is always going to be a polygon whose vertices are a subset of our initial set <math-inline>S</math-inline>, so we also refer to the convex hull interchangably as just the boundary of that polygon, shown on the right.</p><p><svg height="102" version="1.1" viewBox="0 0 382 102" width="382" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="surface141"><path d="M 14.636719 78.273438 L 14.636719 78.273438 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 23.726562 41.910156 L 23.726562 41.910156 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 32.816406 23.726562 L 32.816406 23.726562 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 51 14.636719 L 51 14.636719 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 78.273438 41.910156 L 78.273438 41.910156 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 51 78.273438 L 51 78.273438 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 23.726562 69.183594 L 23.726562 69.183594 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 60.089844 51 L 60.089844 51 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 41.910156 32.816406 L 41.910156 32.816406 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 154.636719 78.273438 C 157.667969 66.152344 160.695312 54.03125 163.726562 41.910156 C 166.757812 35.847656 169.789062 29.789062 172.816406 23.726562 C 178.878906 20.695312 184.9375 17.667969 191 14.636719 C 200.089844 23.726562 209.183594 32.816406 218.273438 41.910156 C 209.183594 54.03125 200.089844 66.152344 191 78.273438 C 178.878906 78.273438 166.757812 78.273438 154.636719 78.273438 Z " style=" stroke:none;fill-rule:nonzero;fill:rgb(0%,0%,0%);fill-opacity:1;"></path>
+<path d="M 294.636719 78.273438 L 294.636719 78.273438 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 303.726562 41.910156 L 303.726562 41.910156 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 312.816406 23.726562 L 312.816406 23.726562 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 331 14.636719 L 331 14.636719 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 358.273438 41.910156 L 358.273438 41.910156 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 331 78.273438 L 331 78.273438 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 303.726562 69.183594 L 303.726562 69.183594 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 340.089844 51 L 340.089844 51 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 321.910156 32.816406 L 321.910156 32.816406 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 294.636719 78.273438 C 297.667969 66.152344 300.695312 54.03125 303.726562 41.910156 C 306.757812 35.847656 309.789062 29.789062 312.816406 23.726562 C 318.878906 20.695312 324.9375 17.667969 331 14.636719 C 340.089844 23.726562 349.183594 32.816406 358.273438 41.910156 C 349.183594 54.03125 340.089844 66.152344 331 78.273438 C 318.878906 78.273438 306.757812 78.273438 294.636719 78.273438 " style="fill:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path></g></svg></p><p>Intuitively, the points are pegs sticking out of the plane, and the convex hull is the result of shrinking a giant rubber band around that set of points until it is tight.</p><h2>Computing the convex hull</h2><p>In a computational context, we’re given a list of <math-inline>n</math-inline> points in the plane as <math-inline>(x, y)</math-inline> pairs, and from this we need to calculate the convex hull: a polygon consisting of some of those points. We would also like to do it quickly, so we would prefer something better than <math-inline>O(n^2)</math-inline>, or “for each point, examine every other point...”</p><aside><svg height="52" version="1.1" viewBox="0 0 102 52" width="102" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="surface146"><path d="M 6 46 L 6 46 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 36 36 L 36 36 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 46 6 L 46 6 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 6 46 C 16 42.667969 26 39.332031 36 36 C 39.332031 26 42.667969 16 46 6 " style="fill:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 56 46 L 56 46 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 66 16 L 66 16 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 96 6 L 96 6 " style="fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path>
+<path d="M 56 46 C 59.332031 36 62.667969 26 66 16 C 76 12.667969 86 9.332031 96 6 " style="fill:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;"></path></g></svg>
+Travelling from left to right, the first three points make a left turn, while the next three points make a right turn.</aside><p>
+By looking at the convex polygon above, we can quickly see some properties which will be true for <em>all</em> convex polygons:
+</p><ul><li>The leftmost and rightmost points are always part of the convex hull.</li><p>
+</p><li>Going anticlockwise, the junction made by three consecutive points is always a left turn.</li></ul><p>These two observations are the core of the following algorithm for computing the convex hull:
+</p><ol><li>Sort the points from left to right.</li><p>
+</p><li>Initialise a new list to hold the hull computation.</li><p>
+</p><li>Going from left to right, add each point to the list. After adding each point, check that the last three points in the list make a left turn. If they don’t, the remove the second-last point.</li></ol><p>This constructs the lower half of the hull. We can construct the upper half of the hull following the same idea, but going from right to left instead of from left to right. Then we join the two halves together (remembering to remove the duplicate end points).</p><p>The interactive example below uses the algorithm just described to compute the convex hull of any set of input points. While animating, large dots indicate dots which are part of the convex hull list being built, <span class="unwanted">red</span> indicates a right turn, and <span class="wanted">green</span> indicates a left turn.</p><p><style>line { stroke-width: 3px; } .inhull { stroke: grey; color: grey; } .wanted { stroke: green; color: green; } .unwanted { stroke: red; color: red; }</style></p><aside>Click the visualisation to add more points.</aside><p>
+</p><div id="hull-animation"><svg>Convex hull animation</svg></div><p>
+<script type="text/javascript" src="/libraries/d3.v3.min.js"></script>
+<script type="text/javascript" src="hull.js"></script></p><p>The time complexity analysis for this algorithm is straightforward. Sorting points from left to right takes <math-inline>O(n \log n)</math-inline> time. Testing three points for whether or not they make a left or right turn takes constant time, and we do this a maximum of <math-inline>n</math-inline> times when building the bottom or halves of the hull. So the running time is dominated by the initial sort, and the time complexity of this algorithm is <math-inline>O(n \log n)</math-inline>.</p><h2>Further Reading</h2><ol><li>Show that the intersection of any collection of convex sets is convex.</li><p>
+</p><li>Show that the union of two convex sets may not be convex.</li><p>
+</p><aside>Hint: Use induction on the size of <math-inline>S</math-inline>.</aside><p>
+</p><li>Let <math-inline>V</math-inline> be any vector space over <math-inline>\mathbb{R}</math-inline>, and <math-inline>S = \{v_1, v_2, \ldots, v_n\}</math-inline> be a finite set of vectors from <math-inline>V</math-inline>. The sum <math-inline>\sum \lambda_i v_i</math-inline> is called a <em>convex combination</em> if <math-inline>0 \leq \lambda_i \leq 1</math-inline> for all <math-inline>i</math-inline>, and <math-inline>\sum \lambda_i = 1</math-inline>.
+Show that the set of all convex combinations of <math-inline>S</math-inline> is equal to the convex hull of <math-inline>S</math-inline>.</li><p>
+</p><li>Let <math-inline>V</math-inline> be a Banach space (a complete normed vector space), and <math-inline>S \subseteq V</math-inline> be convex. Show that the closure of <math-inline>S</math-inline> is convex.</li></ol>
+
+<script type="text/javascript">
+  function elemsByTagName(tag) {
+    var elems = document.getElementsByTagName(tag);
+    var list = [];
+    for (var i = 0; i < elems.length; i++)
+      list.push(elems[i]);
+    return list;
+  }
+
+  elemsByTagName('math-inline').forEach(function(elem) {
+    katex.render(elem.textContent, elem);
+  });
+  elemsByTagName('math-display').forEach(function(elem) {
+    katex.render(elem.textContent, elem, {displayMode: true});
+  });
+</script>
+<script>/* Analytics here */</script>
+</body>
+</html>
