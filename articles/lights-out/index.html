@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Lights Out</title>
+<meta name="author" content="Joel Gibson">
+<link rel="stylesheet" type="text/css" href="/style.css">
+<link rel="stylesheet" href="/libraries/katex/katex.min.css">
+<script type="text/javascript" src="/libraries/katex/katex.min.js"></script>
+</head>
+<body>
+<header>
+<a href="/" title="Home">Home</a>
+</header>
+<h1>Lights Out</h1><p>This is an implementation of the semi-famous <a href="https://en.wikipedia.org/wiki/Lights_Out_(game)" target="_blank">Lights Out!</a> game. The goal is to turn off all of the lights on the board. When any cell is clicked, it and its neighbouring cells will toggle their state. Exactly which pattern of neighbours toggle can be controlled using the small board below.</p><p><style>circle, rect, polygon {
+    stroke: black;
+    stroke-linecap: round;
+}
+#expl {
+    /* Apparently line-height instead of height enables vertical align. I dunno, CSS? */
+    line-height: 10em;
+    vertical-align: middle;
+}
+#explboard svg, #explmath {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 1em;
+}</style></p><p><input id="smaller" type="button" value="Smaller"/>
+<input id="bigger" type="button" value="Bigger"/>
+<input id="generate" type="button" value="Generate new puzzle"/></p><div id="gameboard"></div><p>
+</p><div id="gameconfig"></div><p><input id="restart" type="button" value="Restart current puzzle"/>
+<input id="solve" type="button" value="Show solution"/></p><p>Dimension of solvable space: <span id="dim_solve"></span>.
+Dimension of whole space: <span id="dim_whole"></span>.
+The probability of a totally random board being solvable is 2<sup id="dimdiff"></sup>.</p><p><script type="text/javascript" src="/libraries/d3.v3.min.js"></script>
+<script type="text/javascript" src="linalg.js"></script>
+<script type="text/javascript" src="lightsout.js"></script></p><h2>How does it work?</h2><p>A lights out board can be thought of as a vector over <math-inline>\mathbb{F}_2</math-inline>, the <a href="https://en.wikipedia.org/wiki/GF(2)" target="_blank">field</a> containing only the elements <math-inline>0</math-inline> and <math-inline>1</math-inline>, with multiplication as usual and the extra rule that <math-inline>1 + 1 = 0</math-inline>. Adding vectors has the effect of “toggling” the numbers in the original vector on and off, for example
+<math-display>\begin{bmatrix}0 \\ 1 \\ 1 \\ 0\end{bmatrix}
++ \begin{bmatrix}0 \\ 1 \\ 0 \\ 1\end{bmatrix}
+= \begin{bmatrix}0 \\ 0 \\ 1 \\ 1\end{bmatrix}</math-display>
+So each possible board position is a vector over <math-inline>\mathbb{F}_2</math-inline>, and each possible move is
+a vector over <math-inline>\mathbb{F}_2</math-inline>. For example, on a <math-inline>2 \times 2</math-inline> square board, if we label
+the top left, top right, bottom left, and bottom right moves as <math-inline>m_{11}, m_{12}, m_{21}, m_{22}</math-inline>
+respectively, we have that
+<math-display>m_{11} = \begin{bmatrix}1 \\ 1 \\ 1 \\ 0\end{bmatrix}, \quad
+m_{12} = \begin{bmatrix}1 \\ 1 \\ 0 \\ 1\end{bmatrix}, \quad
+m_{21} = \begin{bmatrix}1 \\ 0 \\ 1 \\ 1\end{bmatrix}, \quad
+m_{22} = \begin{bmatrix}0 \\ 1 \\ 1 \\ 1\end{bmatrix}</math-display>
+where the numbers are read off row-by-row. We then want to find some combination of these
+vectors which adds up to give the current board, since that will cancel with the board,
+turning all of the lights off. In this small case, it’s fairly easy to do this
+via inspection or trial-and-error, but for larger cases there is a systematic way of
+solving this kind of vector problem called <a href="https://en.wikipedia.org/wiki/Gaussian_Elimination" target="_blank">Gaussian Elimination</a>.</p><p>Try the interactive demo below, which will express
+the solution to any puzzle in terms of the <math-inline>m_{ij}</math-inline> vectors above.</p><div id="expl"></div><p><span id="explboard"></span><span id="explmath"></span>
+<script>var expl = create_board('#explboard', shapes[0].layout_fn, 2, 40);
+expl.elems.on('click', onclick_expl);
+var moves = prime_field(2).mat([
+// m11, m12, m21, m22
+  [1,   1,   1,   0],
+  [1,   1,   0,   1],
+  [1,   0,   1,   1],
+  [0,   1,   1,   1]]);
+onclick_expl({i:1, j:1});
+
+function onclick_expl(d) {
+// Flip row d.i, column d.j
+expl.grid[d.i][d.j].state ^= 1;
+expl.recolour();
+
+// Turn the board into a column vector.
+var vec = prime_field(2).vec(expl.flat.map(function(d) {return d.state;}));
+
+// Solve the linear system [moves] * [soln] = [vec] for [soln].
+var soln = solve_Axb(moves, vec);
+
+var names = ["m_{11}", "m_{12}", "m_{21}", "m_{22}"];
+var latex_sum = names.filter(function(d, i) {return soln.list()[i] == 1;}).join(" + ");
+if (latex_sum === "")
+    latex_sum = "0";
+
+latex = "= " + latex_sum + " = " + vec.latex();
+katex.render(latex, document.getElementById("explmath"));
+//document.getElementById("explmath").innerHTML = latex;
+//MathJax.Hub.Queue(["Typeset", MathJax.Hub, "explmath"]);
+}</script></p><h2>Generating and solving boards efficiently</h2><p>Take some board configuration with <math-inline>n</math-inline> cells. By querying each cell about what it toggles on and off, form a vector corresponding to each possible move. These vectors are then assembled into an <math-inline>n \times n</math-inline> matrix <math-inline>M</math-inline>, called the <em>move matrix</em>. Gauss-Jordan Elimination is then performed to put <math-inline>M</math-inline> into <a href="https://en.wikipedia.org/wiki/Row_echelon_form#Reduced_row_echelon_form" target="_blank">reduced row-echelon form</a>: this takes <math-inline>O(n^3)</math-inline> time, and is only done when the size or shape of the board, or thepattern of neighbours changes.</p><p>The column space of <math-inline>M</math-inline> is the subspace corresponding to all solvable boards. Using the row-reduction information for <math-inline>M</math-inline>, a basis <math-inline>B</math-inline> is extracted for this subspace in <math-inline>O(n^2)</math-inline> time. To choose a random solvable board uniformly from the space, a random <math-inline>0,1</math-inline>-vector is chosen and multiplied onto <math-inline>B</math-inline>, which takes <math-inline>O(n^2)</math-inline> time.</p><p>Solutions to any board position can be found in <math-inline>O(n^2)</math-inline> time using the row-reduction information. What remains to be done here is to try to find a solution using the <em>minimum</em> number of moves, instead of just using any old solution.</p>
+
+<script type="text/javascript">
+  function elemsByTagName(tag) {
+    var elems = document.getElementsByTagName(tag);
+    var list = [];
+    for (var i = 0; i < elems.length; i++)
+      list.push(elems[i]);
+    return list;
+  }
+
+  elemsByTagName('math-inline').forEach(function(elem) {
+    katex.render(elem.textContent, elem);
+  });
+  elemsByTagName('math-display').forEach(function(elem) {
+    katex.render(elem.textContent, elem, {displayMode: true});
+  });
+</script>
+<script>  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');  ga('create', 'UA-102888673-1', 'auto');  ga('send', 'pageview');  </script>
+</body>
+</html>

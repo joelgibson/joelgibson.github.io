@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Mandelbrot in WebGL</title>
+<meta name="author" content="Joel Gibson">
+<link rel="stylesheet" type="text/css" href="/style.css">
+
+</head>
+<body>
+<header>
+<a href="/" title="Home">Home</a>
+</header>
+<h1>Mandelbrot in WebGL</h1><p>I remember once having written a version of the <a href="https://en.wikipedia.org/wiki/Mandelbrot_set" target="_blank">Mandelbrot set</a> using the HTML5 <code>&lt;canvas&gt;</code> element, writing to the raw pixel buffer using javascript. It was nice, but very slow. I decided recently to take a dive into how WebGL works, by this simple project: write something that renders the Mandelbrot set (in a sufficiently pretty way) using WebGL.</p><p>The actual drawing the set is done in a single fragment shader, which you can find embedded in the html source for this page. The vertex shader does almost nothing, since the only geometry I have in the scene is a single square, so the job of the vertex shader is basically to interpolate coordinates and pass them along to the fragment shader.</p><p>The work done in the javascript file is about half nonsense to do with setting up WebGL, and then about half doing work with the coordinate system, which involves keeping track of where in the scene the viewer is, and takes in pan and scroll events and basically just spits out a single matrix to send along to the vertex shader, telling it where the camera is.</p><p>As you can see below, the result is pretty ok, and (at least on most computers I’ve tried) renders quite fast. However, it seems that WebGL only supports single-precision floats, so after zooming in not too far, the entire thing gets pixelated and stops resolving.</p><canvas height="600" id="glcanvas" width="1000"></canvas><p>
+</p><p id="gltext"></p><p><script id="shader-fs" type="x-shader/x-fragment">precision highp float;
+
+#define MAXCOUNT 100
+#define ESCAPERAD2 4.0
+#define LOG2INV 1.4426950408889634
+#define PI 3.14159265358979323846
+
+// The varying is passed in from the vertex shader. This represents a complex number,
+// any data representing exactly where on the screen this is has already been dealt with.
+varying highp vec2 v_pos;
+
+// Norm squared of a complex
+float norm2(in vec2 z) {
+        return dot(z, z);
+}
+
+// Smoothly shade.
+float itershade(in vec2 c) {
+        int max = MAXCOUNT;
+        vec2 pt = vec2(0, 0);
+        for (int count = 0; count < MAXCOUNT; count++) {
+                if (norm2(pt) > ESCAPERAD2) {
+                        max = count;
+                        break;
+                }
+                pt = vec2(pt.x * pt.x - pt.y * pt.y, 2.0 * pt.x * pt.y) + c;
+        }
+        if (max == MAXCOUNT)
+                return 0.0;
+        float mu = float(max) - log(log(norm2(pt))) * LOG2INV;
+        return 1.0 - mu / float(MAXCOUNT);
+}
+
+void main(void) {
+        vec2 z = v_pos;
+        float shade = itershade(z);
+        float offset = 1.5;
+        vec3 angle = 2.0 * PI * (shade + vec3(0, 1, 2) / 3.0) + offset;
+        gl_FragColor = vec4((1.0 + cos(angle)) / 2.0, 1);
+}</script>
+<script id="shader-vs" type="x-shader/x-vertex">attribute vec3 aVertexPosition;
+
+// One uniform matrix, to transform coordinates.
+uniform mat4 u_matrix;
+
+// The varying is passed along to the fragment shader.
+varying vec2 v_pos;
+
+void main(void) {
+        // We never want to move the actual geometry. It's just a flat square.
+        gl_Position = vec4(aVertexPosition.xyz, 1.0);
+
+        // However, we do want to transform a position for the next stage.
+        vec4 hom_pos = u_matrix * vec4(aVertexPosition.xyz, 1.0);
+        v_pos = vec2(hom_pos.xy) / hom_pos.w;
+}</script>
+<script type="text/javascript" src="mandelbrot.js"></script></p>
+
+
+<script>  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');  ga('create', 'UA-102888673-1', 'auto');  ga('send', 'pageview');  </script>
+</body>
+</html>

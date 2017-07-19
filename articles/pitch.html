@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Pitches</title>
+<meta name="author" content="Joel Gibson">
+<link rel="stylesheet" type="text/css" href="/style.css">
+
+</head>
+<body>
+<header>
+<a href="/" title="Home">Home</a>
+</header>
+<h1>Pitches</h1><p><style>a { color: steelblue; text-decoration: none; }
+body {
+  margin: 0 auto;
+  font-family: Georgia, Times, serif;
+  line-height: 1.5em;
+  width: 19em;
+}
+h1, h2, h3 {
+  font-family: sans-serif;
+  font-weight: 300;
+}
+#content {
+  margin: 0 auto;
+  padding: 0 1em;
+}
+#notes {
+  width: 16em;
+}
+.btn {
+  font-size:110%;
+  display: inline-block;
+  width: 75px;
+  height: 40px;
+  margin:5px;
+  padding: 5px;
+}</style></p><p><a href="#" id="wave">square</a> waves give me ze gigglez.
+</p><div id="notes"></div><p><script>// DATA YAY
+var E3 = 440 / Math.pow(2, 5/12); // Hz
+var notelist = ['A', 'Bb', 'B', 'C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab'];
+var notesfrom = function(note, oct, num) {
+  var notes = [];
+  for (var i = 0; i < num; i++) {
+    var n = notelist[(notelist.indexOf(note) + i) % notelist.length];
+    notes.push(n + ' ' + oct);
+    if (n == 'Ab') oct++;
+  }
+  return notes;
+};
+var waves = ['square', 'sine', 'sawtooth', 'triangle'];
+
+// Goddamn mobiles
+var clickOrTouch = (('ontouchend' in window)) ? 'touchend' : 'click';
+
+// Set up output and volume
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+var gainNode = audioCtx.createGain();
+gainNode.connect(audioCtx.destination);
+gainNode.gain.value = 0.04;
+
+// Wave switcher
+var $wave = document.getElementById('wave');
+$wave.addEventListener('click', function() {
+  this.innerText = waves[(waves.indexOf(this.innerText)+1)%waves.length];
+});
+
+var $notes = document.getElementById('notes');
+notesfrom('E', 3, 18).forEach(function(note, idx) {
+  var $btn = document.createElement('button');
+  $btn.innerText = note;
+  $btn.className = 'pure-button btn'
+  $btn.addEventListener(clickOrTouch, function() {
+    var osc = audioCtx.createOscillator();
+    osc.connect(gainNode);
+    osc.type = $wave.innerText;
+    osc.frequency.value = E3 * Math.pow(2, idx / 12); // Yeah I can maths
+    osc.start(audioCtx.currentTime + 0);
+    osc.stop(audioCtx.currentTime + 1);
+  });
+  $notes.appendChild($btn);
+});</script></p>
+
+
+<script>  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');  ga('create', 'UA-102888673-1', 'auto');  ga('send', 'pageview');  </script>
+</body>
+</html>
