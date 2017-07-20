@@ -243,7 +243,7 @@ d3.select('#shape').selectAll('input')
     .attr('name', 'shape')
     .property('checked', function(d, i) {return i === 0;})
     .on('click', function(d) {game(d);})
-    .each(function(d) {this.insertAdjacentHTML('afterend', d.name);});
+    .each(function(d) {this.insertAdjacentHTML('afterend', ' ' + d.name);});
 game(shapes[0]);
 
 function game(shape) {
