@@ -28,35 +28,12 @@
 }
 input[type=radio] {
     margin-left: 2em;
-}</style></p><form id="shape"></form><p>
-</p><p></p><p>
-<input id="smaller" type="button" value="Smaller"/>
-<input id="bigger" type="button" value="Bigger"/>
-<input id="generate" type="button" value="Generate new puzzle"/></p><div id="gameboard"></div><p>
-</p><div id="gameconfig"></div><p><input id="restart" type="button" value="Restart current puzzle"/>
-<input id="solve" type="button" value="Show solution"/></p><p>Dimension of solvable space: <span id="dim_solve"></span>.
-Dimension of whole space: <span id="dim_whole"></span>.
-The probability of a totally random board being solvable is 2<sup id="dimdiff"></sup>.</p><p><script type="text/javascript" src="/libraries/d3.v3.min.js"></script>
-<script type="text/javascript" src="linalg.js"></script>
-<script type="text/javascript" src="lightsout.js"></script></p><h2>How does it work?</h2><p>A lights out board can be thought of as a vector over <math-inline>\mathbb{F}_2</math-inline>, the <a href="https://en.wikipedia.org/wiki/GF(2)" target="_blank">field</a> containing only the elements <math-inline>0</math-inline> and <math-inline>1</math-inline>, with multiplication as usual and the extra rule that <math-inline>1 + 1 = 0</math-inline>. Adding vectors has the effect of “toggling” the numbers in the original vector on and off, for example
-<math-display>\begin{bmatrix}0 \\ 1 \\ 1 \\ 0\end{bmatrix}
+}</style></p><form id="shape" style="margin-bottom: 0.5em;"></form><p><input id="smaller" type="button" value="Smaller"/> <input id="bigger" type="button" value="Bigger"/> <input id="generate" type="button" value="Generate new puzzle"/></p><div id="gameboard"></div><div id="gameconfig"></div><p><input id="restart" type="button" value="Restart current puzzle"/> <input id="solve" type="button" value="Show solution"/></p><p>Dimension of solvable space: <span id="dim_solve"></span>. Dimension of whole space: <span id="dim_whole"></span>. The probability of a totally random board being solvable is 2<sup id="dimdiff"></sup>.</p><p><script type="text/javascript" src="/libraries/d3.v3.min.js"></script> <script type="text/javascript" src="linalg.js"></script> <script type="text/javascript" src="lightsout.js"></script></p><h2>How does it work?</h2><p>A lights out board can be thought of as a vector over <math-inline>\mathbb{F}_2</math-inline>, the <a href="https://en.wikipedia.org/wiki/GF(2)" target="_blank">field</a> containing only the elements <math-inline>0</math-inline> and <math-inline>1</math-inline>, with multiplication as usual and the extra rule that <math-inline>1 + 1 = 0</math-inline>. Adding vectors has the effect of “toggling” the numbers in the original vector on and off, for example <math-display>\begin{bmatrix}0 \\ 1 \\ 1 \\ 0\end{bmatrix}
 + \begin{bmatrix}0 \\ 1 \\ 0 \\ 1\end{bmatrix}
-= \begin{bmatrix}0 \\ 0 \\ 1 \\ 1\end{bmatrix}</math-display>
-So each possible board position is a vector over <math-inline>\mathbb{F}_2</math-inline>, and each possible move is
-a vector over <math-inline>\mathbb{F}_2</math-inline>. For example, on a <math-inline>2 \times 2</math-inline> square board, if we label
-the top left, top right, bottom left, and bottom right moves as <math-inline>m_{11}, m_{12}, m_{21}, m_{22}</math-inline>
-respectively, we have that
-<math-display>m_{11} = \begin{bmatrix}1 \\ 1 \\ 1 \\ 0\end{bmatrix}, \quad
+= \begin{bmatrix}0 \\ 0 \\ 1 \\ 1\end{bmatrix}</math-display> So each possible board position is a vector over <math-inline>\mathbb{F}_2</math-inline>, and each possible move is a vector over <math-inline>\mathbb{F}_2</math-inline>. For example, on a <math-inline>2 \times 2</math-inline> square board, if we label the top left, top right, bottom left, and bottom right moves as <math-inline>m_{11}, m_{12}, m_{21}, m_{22}</math-inline> respectively, we have that <math-display>m_{11} = \begin{bmatrix}1 \\ 1 \\ 1 \\ 0\end{bmatrix}, \quad
 m_{12} = \begin{bmatrix}1 \\ 1 \\ 0 \\ 1\end{bmatrix}, \quad
 m_{21} = \begin{bmatrix}1 \\ 0 \\ 1 \\ 1\end{bmatrix}, \quad
-m_{22} = \begin{bmatrix}0 \\ 1 \\ 1 \\ 1\end{bmatrix}</math-display>
-where the numbers are read off row-by-row. We then want to find some combination of these
-vectors which adds up to give the current board, since that will cancel with the board,
-turning all of the lights off. In this small case, it’s fairly easy to do this
-via inspection or trial-and-error, but for larger cases there is a systematic way of
-solving this kind of vector problem called <a href="https://en.wikipedia.org/wiki/Gaussian_Elimination" target="_blank">Gaussian Elimination</a>.</p><p>Try the interactive demo below, which will express
-the solution to any puzzle in terms of the <math-inline>m_{ij}</math-inline> vectors above.</p><div id="expl"></div><p><span id="explboard"></span><span id="explmath"></span>
-<script>var expl = create_board('#explboard', shapes[0].layout_fn, 2, 40);
+m_{22} = \begin{bmatrix}0 \\ 1 \\ 1 \\ 1\end{bmatrix}</math-display> where the numbers are read off row-by-row. We then want to find some combination of these vectors which adds up to give the current board, since that will cancel with the board, turning all of the lights off. In this small case, it’s fairly easy to do this via inspection or trial-and-error, but for larger cases there is a systematic way of solving this kind of vector problem called <a href="https://en.wikipedia.org/wiki/Gaussian_Elimination" target="_blank">Gaussian Elimination</a>.</p><p>Try the interactive demo below, which will express the solution to any puzzle in terms of the <math-inline>m_{ij}</math-inline> vectors above.</p><div id="expl"></div><p><span id="explboard"></span><span id="explmath"></span> <script>var expl = create_board('#explboard', shapes[0].layout_fn, 2, 40);
 expl.elems.on('click', onclick_expl);
 var moves = prime_field(2).mat([
 // m11, m12, m21, m22

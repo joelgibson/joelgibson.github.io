@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>About Minimal Pairs</title>
+<meta name="author" content="Joel Gibson">
+<link rel="stylesheet" type="text/css" href="/style.css">
+
+</head>
+<body>
+<header>
+<a href="/" title="Home">Home</a>
+</header>
+<h1>About Minimal Pairs</h1><aside><a href="/minpairs">Back to Minimal Pairs</a></aside><p>A <a href="https://en.wikipedia.org/wiki/minimal_pair" target="_blank">minimal pair</a> is a pair of words differing in only one phoneme, such as <em>bat</em> and <em>pat</em>, or <em>more</em> and <em>bore</em>. A more complicated example would be the oft-quoted “tom-ay-to, tom-ah-to” (although these are really the same word, drawn from different dialects). The goal of the minimal pairs application is to be able to quickly locate examples of these for two specified phonemes.</p><h2>How does it work?</h2><p>The data is drawn from the <a href="http://www.speech.cs.cmu.edu/cgi-bin/cmudict">CMU Pronouncing Dictionary</a>, maintained by Carnegie Mellon University in Pennsylvania, USA. Their entire database is available for download, and contains words and their corresponding pronounciations in terms of phonemes, where each phoneme is drawn from the <a href="https://en.wikipedia.org/wiki/arpabet" target="_blank">arpabet</a>. The database has entries like the following:</p><pre>TOMATO     T AH0 M EY1 T OW2
+TOMATO(1)  T AH0 M AA1 T OW2</pre><p>Here we can see the two different pronounciations of “tomato”. The digits following each vowel record the amount of stress put on that particular vowel when saying the word.</p><p>The actual database contains over 130,000 words, which is far too many to be useful for our purposes. It also contains swear words, and other undesirable words. I filtered the dictionary using <a href="https://github.com/first20hours/google-10000-english">some random wordlist</a> of the top 10,000 most common English words with rude words removed. I also strip the stresses off the vowels, and translate the arpabet phonemes into (roughly) equivalent <a href="https://en.wikipedia.org/wiki/International_Phonetic_Alphabet" target="_blank">IPA</a>, which is more useful to Australians.</p><p>Unfortunately, I can’t find a pronounciation dictionary for Australian or British English, and so there are many erroneous pairs, which would <em>not</em> be minimal pairs with Australian pronounciation, for example <em>caught</em> and <em>lot</em>.</p>
+
+
+<script>  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');  ga('create', 'UA-102888673-1', 'auto');  ga('send', 'pageview');  </script>
+</body>
+</html>

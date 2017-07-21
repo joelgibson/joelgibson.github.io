@@ -69,14 +69,18 @@ p, li {
 }
 
 p {
-  margin-bottom: 1.8rem;
+  margin-bottom: 1.5rem;
 }
 li {
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.5rem;
   margin-left: 2rem;
 }
 
 svg {
+  display: block;
+  margin: 0 auto;
+}
+img {
   display: block;
   margin: 0 auto;
 }
@@ -95,8 +99,8 @@ h1, h2, h3 {
   text-rendering: optimizeLegibility;
 }
 h1 {
-  font-size: 2.5em;
-  margin-bottom: 0.5rem;
+  font-size: 2.2em;
+  margin-bottom: 0.8rem;
 }
 h2 {
   font-size: 1.5em;
