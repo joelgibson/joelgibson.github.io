@@ -1,3 +1,4 @@
+"use strict";
 // A vertex is highest-weight if it is a lattice word, meaning that every prefix of
 // the word has partition weight. This means that reading from the left to the right,
 // partitions can be built by adding a cell in the row specified by the letter, for
@@ -75,7 +76,7 @@ function vertexHeight(v) {
 }
 // This silly datastructure will keep track of which elements we have seen during
 // the traversal of the crystal.
-var NumsSet = (function () {
+var NumsSet = /** @class */ (function () {
     function NumsSet() {
         this.elems = {};
     }
@@ -182,6 +183,7 @@ function schurUnit(num) {
     return [{ part: [], mult: num }];
 }
 function schurPart(part) {
+    assertOrCrash(isPartition(part));
     return [{ part: part, mult: 1 }];
 }
 // Normalise to sorted form, without duplicates or items of multiplicity 0.
@@ -240,8 +242,18 @@ function tensorPartitions(n, part1, part2) {
 }
 var SymAlgebra = { algebra: 'sym', n: 0 };
 function GLAlgebra(n) {
-    assertOrCrash(n >= 1);
+    assertOrCrash(n >= 2);
     return { algebra: 'gl', n: n };
+}
+// We need to be able to restrict to the given algebra.
+function schurRestrict(type, schur) {
+    if (type.algebra == 'gl') {
+        var restricted = schur.filter(function (elem) { return elem.part.length <= type.n; });
+        if (restricted.length == 0)
+            return schurUnit(0);
+        return restricted;
+    }
+    return schur;
 }
 // Tensor the terms in the specified algebra.
 function schurTensor(config) {
@@ -312,7 +324,7 @@ function assertOrCrash(cond, msg) {
 }
 /// <reference path="crystal.ts"/>
 var precedence = { '+': 0, '*': 1 };
-var ParseError = (function () {
+var ParseError = /** @class */ (function () {
     function ParseError(pos, extent, msg) {
         this.pos = pos;
         this.extent = extent;
@@ -320,7 +332,7 @@ var ParseError = (function () {
     }
     return ParseError;
 }());
-var Item = (function () {
+var Item = /** @class */ (function () {
     function Item(item, pos) {
         this.item = item;
         this.pos = pos;
@@ -338,7 +350,7 @@ function evaluate(type, str) {
         if (typeof item == 'number')
             stack.push(schurUnit(item));
         else if (item instanceof Array)
-            stack.push(schurPart(item));
+            stack.push(schurRestrict(type, schurPart(item)));
         else {
             if (stack.length < 2)
                 return new ParseError(pos, 1, "Not enough arguments to " + item);
@@ -506,11 +518,12 @@ function frameError(err, str) {
     return stringParts.join("");
 }
 // Set up event handlers.
-var $configForm = document.getElementById('config');
-$configForm.addEventListener('change', doComputation);
 var $computationForm = document.getElementById('computationForm');
 $computationForm.addEventListener('submit', function (event) {
     event.preventDefault();
+    doComputation();
+});
+$computationForm.addEventListener('change', function (event) {
     doComputation();
 });
 // Fire inital computation.
