@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>A Clock Game</title>
+<meta name="author" content="Joel Gibson">
+<link rel="stylesheet" type="text/css" href="/style.css">
+<link rel="stylesheet" href="/libraries/katex/katex.min.css">
+<script type="text/javascript" src="/libraries/katex/katex.min.js"></script>
+</head>
+<body>
+<header>
+<a href="/" title="Home">Home</a>
+</header>
+<h1>A Clock Game</h1><p>Part of solving “paradoxes” in <a href="https://en.wikipedia.org/wiki/https://en.wikipedia.org/wiki/Final_Fantasy_XIII-2" target="_blank">FFXIII-2</a> involves solving puzzles: this is one such puzzle appearing in the game. A circle of numbers is laid out, and you need to “visit” every number.</p><p>You may start anywhere. After visiting a number <math-inline>n</math-inline>, the clock hands will swing around to the two faces which are <math-inline>n</math-inline> steps away from the visited number. You may not visit the same number twice.</p><p><style>circle {
+    stroke-width: 2;
+    stroke: black;
+    fill: #fca;
+}
+g.visited > circle {
+    stroke: grey;
+    fill: #ccf;
+}
+text {
+    font-weight: bold;
+    font-size: 1.3em;
+}
+line {
+    stroke-width: 3px;
+    stroke: black;
+}</style></p><aside>You may start anywhere.</aside><div id="game"></div><p><script src="/libraries/d3.v3.min.js"></script> <script src="clock.js"></script></p><p>This appears to be “hard” to solve even on a computer, in that the most efficient algorithm is a brute force of all possible moves. The program which generates the puzzles on this page does this every time you request a new puzzle.</p>
+
+<script type="text/javascript">
+  function elemsByTagName(tag) {
+    var elems = document.getElementsByTagName(tag);
+    var list = [];
+    for (var i = 0; i < elems.length; i++)
+      list.push(elems[i]);
+    return list;
+  }
+
+  elemsByTagName('math-inline').forEach(function(elem) {
+    katex.render(elem.textContent, elem);
+  });
+  elemsByTagName('math-display').forEach(function(elem) {
+    katex.render(elem.textContent, elem, {displayMode: true});
+  });
+</script>
+<script>  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');  ga('create', 'UA-102888673-1', 'auto');  ga('send', 'pageview');  </script>
+</body>
+</html>
