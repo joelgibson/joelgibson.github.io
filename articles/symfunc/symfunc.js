@@ -1,12 +1,40 @@
 "use strict";
+// Compare two lists of numbers in lex order.
+function compareLists(a, b) {
+    var i = 0;
+    for (; i < a.length && i < b.length; i++) {
+        if (a[i] < b[i])
+            return -1;
+        if (a[i] > b[i])
+            return 1;
+    }
+    if (i == a.length && i < b.length)
+        return -1;
+    if (i < a.length && i == b.length)
+        return 1;
+    return 0;
+}
+function assertOrCrash(cond, msg) {
+    if (!cond) {
+        var message = "Assertion failed" + ((msg == undefined) ? "." : ": " + msg);
+        throw new Error(message);
+    }
+}
+/// <reference path="util.ts"/>
+function isPartition(nums) {
+    for (var i = 1; i < nums.length; i++)
+        if (nums[i - 1] < nums[i])
+            return false;
+    if (nums.length > 0 && nums[nums.length - 1] <= 0)
+        return false;
+    return true;
+}
 // A vertex is highest-weight if it is a lattice word, meaning that every prefix of
 // the word has partition weight. This means that reading from the left to the right,
 // partitions can be built by adding a cell in the row specified by the letter, for
 // example the word 11231 has successive partitions [1], [2], [2, 1], [2, 1, 1], and
 // [3, 1, 1], and so is a lattice word.
-//   The following function tests whether the given crystal vertex is highest-weight
-// by building and returning the final partition, or returning null if the vertex was
-// not highest-weight.
+// Return the corresponding partition if v is highest weight, otherwise return null.
 function hwToMaybePartition(v) {
     var partition = [];
     for (var i = 0; i < v.length; i++) {
@@ -155,20 +183,8 @@ function dimensionInGL(n, partition) {
     // Lol these dank floating points
     return Math.round(product);
 }
-// Test whether the given list of numbers is a partition.
-function isPartition(nums) {
-    for (var i = 1; i < nums.length; i++)
-        if (nums[i - 1] < nums[i])
-            return false;
-    if (nums.length > 0 && nums[nums.length - 1] <= 0)
-        return false;
-    return true;
-}
-// We will also want to represent a partition as a highest-weight element in some
-// crystal. There are many ways of doing this, but there is a simple one that always
-// works. We number the Young diagram associated to the partition by filling the first
-// row with 1's, the second row with 2's, and so on. Then we take the left-to-right,
-// top-to-bottom row reading.
+// Produce some highest-weight vector of the given weight from a partition. There are many such
+// embeddings, we use the one which sends [4, 2, 1] to [1, 1, 1, 1, 2, 2, 3].
 function partitionToHw(part) {
     assertOrCrash(isPartition(part));
     var v = [];
@@ -177,26 +193,39 @@ function partitionToHw(part) {
             v.push(i + 1);
     return v;
 }
-// The only valid way of constructing something of type Schur from primitives is the following
-// two functions. The first injects units into the algebra, the second injects partitions in.
-function schurUnit(num) {
+// Tensor partitions as if in the representation ring of GL_n.
+function tensorPartitions(n, part1, part2) {
+    assertOrCrash(n >= 2 && isPartition(part1) && isPartition(part2));
+    // Optimisation: check which one has smaller dimension, and put it on the right.
+    var _a = [dimensionInGL(n, part1), dimensionInGL(n, part2)], dim1 = _a[0], dim2 = _a[1];
+    if (dim1 < dim2)
+        _b = [part2, part1], part1 = _b[0], part2 = _b[1];
+    var _c = [partitionToHw(part1), partitionToHw(part2)], v1 = _c[0], v2 = _c[1];
+    var crystal2 = expandInGL(n, v2);
+    var newHws = tensorHwWithCrystal(v1, crystal2);
+    return newHws.map(hwToPartition);
+    var _b;
+}
+/// <reference path="crystal.ts"/>
+// The unit inclusion Z -> Algebra.
+function algebraUnit(num) {
     return [{ part: [], mult: num }];
 }
-function schurPart(part) {
+// Place a partition into the algebra.
+function algebraPart(part) {
     assertOrCrash(isPartition(part));
     return [{ part: part, mult: 1 }];
 }
 // Normalise to sorted form, without duplicates or items of multiplicity 0.
-function schurNormalise(schur) {
-    schur = schur.slice(0);
-    schur.sort(function (_a, _b) {
+function algebraNormalise(lin) {
+    var sorted = lin.slice(0).sort(function (_a, _b) {
         var part1 = _a.part;
         var part2 = _b.part;
         return -compareLists(part1, part2);
     });
     var result = [];
-    for (var _i = 0, schur_1 = schur; _i < schur_1.length; _i++) {
-        var _a = schur_1[_i], part = _a.part, mult = _a.mult;
+    for (var _i = 0, sorted_1 = sorted; _i < sorted_1.length; _i++) {
+        var _a = sorted_1[_i], part = _a.part, mult = _a.mult;
         if (mult == 0)
             continue;
         if (result.length == 0 || compareLists(result[result.length - 1].part, part) != 0)
@@ -211,80 +240,75 @@ function schurNormalise(schur) {
     }
     return result;
 }
-// TODO: Do I use this anywhere?
-function schurEq(a, b) {
-    if (a.length != b.length)
-        return false;
-    return a.every(function (_a, i) {
-        var part = _a.part;
-        return compareLists(part, b[i].part) == 0;
-    });
-}
-function schurAdd() {
-    var schurs = [];
+// Addition of linear combinations.
+function algebraAdd() {
+    var lins = [];
     for (var _i = 0; _i < arguments.length; _i++) {
-        schurs[_i] = arguments[_i];
+        lins[_i] = arguments[_i];
     }
-    return schurNormalise((_a = []).concat.apply(_a, schurs));
+    return algebraNormalise((_a = []).concat.apply(_a, lins));
     var _a;
 }
-// Tensor partitions as if in the representation ring of GL_n. If the given n = 0, then
-// n will be taken large enough such that the tensor product appears to be happening in
-// the Symmetric Function ring.
-function tensorPartitions(n, part1, part2) {
-    assertOrCrash(isPartition(part1) && isPartition(part2));
-    if (n == 0)
-        n = part1.length + part2.length + 1;
-    var _a = [partitionToHw(part1), partitionToHw(part2)], v1 = _a[0], v2 = _a[1];
-    var crystal2 = expandInGL(n, v2);
-    var newHws = tensorHwWithCrystal(v1, crystal2);
-    return schurAdd.apply(void 0, newHws.map(hwToMaybePartition).map(schurPart));
-}
-var SymAlgebra = { algebra: 'sym', n: 0 };
-function GLAlgebra(n) {
-    assertOrCrash(n >= 2);
-    return { algebra: 'gl', n: n };
-}
-// We need to be able to restrict to the given algebra.
-function schurRestrict(type, schur) {
-    if (type.algebra == 'gl') {
-        var restricted = schur.filter(function (elem) { return elem.part.length <= type.n; });
-        if (restricted.length == 0)
-            return schurUnit(0);
-        return restricted;
+// The next few operations are dependent on which algebra we are working in. We also
+// need a way to restricted injected partitions to the given algebra.
+var AlgebraType = /** @class */ (function () {
+    function AlgebraType(algebra, n) {
+        this.algebra = algebra;
+        this.n = n;
     }
-    return schur;
-}
-// Tensor the terms in the specified algebra.
-function schurTensor(config) {
-    var schurs = [];
+    AlgebraType.GL = function (n) {
+        assertOrCrash(n >= 2);
+        return new AlgebraType('gl', n);
+    };
+    AlgebraType.prototype.restrict = function (lin) {
+        var _this = this;
+        if (this.algebra == 'gl') {
+            var restricted = lin.filter(function (elem) { return elem.part.length <= _this.n; });
+            return (restricted.length == 0) ? algebraUnit(0) : restricted;
+        }
+        return lin;
+    };
+    // Return in which GL_n the two partitions should be tensored.
+    AlgebraType.prototype.tensorIn = function (part1, part2) {
+        return (this.algebra == 'gl') ? this.n : part1.length + part2.length + 1;
+    };
+    // Dimension of the irreducible corresponding to the given partition.
+    AlgebraType.prototype.dimension = function (part) {
+        return (this == AlgebraType.Sym) ? dimensionSymmetric(part) : dimensionInGL(this.n, part);
+    };
+    AlgebraType.Sym = new AlgebraType('sym', 0);
+    return AlgebraType;
+}());
+// Multiplication of linear combinations, given which algebra we are working over.
+function algebraMul(type) {
+    var lins = [];
     for (var _i = 1; _i < arguments.length; _i++) {
-        schurs[_i - 1] = arguments[_i];
+        lins[_i - 1] = arguments[_i];
     }
-    if (schurs.length == 0)
-        return schurUnit(1);
-    var sofar = schurs[0];
-    for (var i = 1; i < schurs.length; i++) {
+    if (lins.length == 0)
+        return algebraUnit(1);
+    var sofar = lins[0];
+    for (var i = 1; i < lins.length; i++) {
         var product = [];
         for (var _a = 0, sofar_1 = sofar; _a < sofar_1.length; _a++) {
             var _b = sofar_1[_a], part1 = _b.part, mult1 = _b.mult;
-            for (var _c = 0, _d = schurs[i]; _c < _d.length; _c++) {
+            for (var _c = 0, _d = lins[i]; _c < _d.length; _c++) {
                 var _e = _d[_c], part2 = _e.part, mult2 = _e.mult;
-                for (var _f = 0, _g = tensorPartitions(config.n, part1, part2); _f < _g.length; _f++) {
-                    var _h = _g[_f], part = _h.part, mult = _h.mult;
-                    product.push({ part: part, mult: mult * mult1 * mult2 });
+                for (var _f = 0, _g = tensorPartitions(type.tensorIn(part1, part2), part1, part2); _f < _g.length; _f++) {
+                    var part = _g[_f];
+                    product.push({ part: part, mult: mult1 * mult2 });
                 }
             }
         }
-        sofar = schurNormalise(product);
+        sofar = algebraNormalise(product);
     }
     return sofar;
 }
-// Convert to a string in a mildly sensible fashion.
-function schurString(schur) {
+// Represent a linear combination as a string.
+function algebraString(lin) {
     var output = [];
-    for (var _i = 0, schur_2 = schur; _i < schur_2.length; _i++) {
-        var _a = schur_2[_i], part = _a.part, mult = _a.mult;
+    for (var _i = 0, lin_1 = lin; _i < lin_1.length; _i++) {
+        var _a = lin_1[_i], part = _a.part, mult = _a.mult;
         var multStr = "" + mult;
         var partStr = "[" + part.join(", ") + "]";
         if (partStr == "[]") {
@@ -293,36 +317,13 @@ function schurString(schur) {
         }
         if (multStr == "1")
             multStr = "";
-        if (multStr == "-1")
-            multStr = "-";
         output.push(multStr + partStr);
     }
     if (output.length == 0)
         return "0";
     return output.join(" + ");
 }
-// Compare two lists of numbers in lex order.
-function compareLists(a, b) {
-    var i = 0;
-    for (; i < a.length && i < b.length; i++) {
-        if (a[i] < b[i])
-            return -1;
-        if (a[i] > b[i])
-            return 1;
-    }
-    if (i == a.length && i < b.length)
-        return -1;
-    if (i < a.length && i == b.length)
-        return 1;
-    return 0;
-}
-function assertOrCrash(cond, msg) {
-    if (!cond) {
-        var message = "Assertion failed" + ((msg == undefined) ? "." : ": " + msg);
-        throw new Error(message);
-    }
-}
-/// <reference path="crystal.ts"/>
+/// <reference path="algebra.ts"/>
 var precedence = { '+': 0, '*': 1 };
 var ParseError = /** @class */ (function () {
     function ParseError(pos, extent, msg) {
@@ -348,18 +349,18 @@ function evaluate(type, str) {
     for (var _i = 0, items_1 = items; _i < items_1.length; _i++) {
         var _a = items_1[_i], item = _a.item, pos = _a.pos;
         if (typeof item == 'number')
-            stack.push(schurUnit(item));
+            stack.push(algebraUnit(item));
         else if (item instanceof Array)
-            stack.push(schurRestrict(type, schurPart(item)));
+            stack.push(type.restrict(algebraPart(item)));
         else {
             if (stack.length < 2)
                 return new ParseError(pos, 1, "Not enough arguments to " + item);
             var right = stack.pop();
             var left = stack.pop();
             if (item == '+')
-                stack.push(schurAdd(left, right));
+                stack.push(algebraAdd(left, right));
             else if (item == '*')
-                stack.push(schurTensor(type, left, right));
+                stack.push(algebraMul(type, left, right));
         }
     }
     if (stack.length != 1)
@@ -392,7 +393,7 @@ function toRPN(str) {
         if (token[0] == '[') {
             var nums = extractNums(token);
             if (!isPartition(nums))
-                return new ParseError(currentPos, token.length, "\"" + token + "\" is not a partition.");
+                return new ParseError(currentPos, token.length, "Partitions are weakly decreasing sequences of positive integers: " + token + " is not a partition.");
             // Hackery so I can write 2[3, 1]
             if (lastToken.match(/\d+/))
                 pushOp('*');
@@ -439,7 +440,6 @@ function extractNums(str) {
         return [];
     return matches.map(function (s) { return parseInt(s, 10); });
 }
-/// <reference path="crystal.ts"/>
 /// <reference path="parse.ts"/>
 // Read a configuration out of the config form.
 function readConfig() {
@@ -448,8 +448,8 @@ function readConfig() {
     if ($number.valueAsNumber < 2)
         $number.value = '' + 2;
     if ($checked.value == 'sym')
-        return SymAlgebra;
-    return GLAlgebra($number.valueAsNumber);
+        return AlgebraType.Sym;
+    return AlgebraType.GL($number.valueAsNumber);
 }
 // Read the config and do a computation.
 function doComputation() {
@@ -458,25 +458,23 @@ function doComputation() {
     var $error = document.getElementById('error');
     var $errorMessage = document.getElementById('errorMessage');
     var $errorInput = document.getElementById('errorInput');
-    var text = $computation.value;
-    var config = readConfig();
-    var result = evaluate(config, text);
-    var resultSchur = schurUnit(0);
-    if (result instanceof ParseError) {
+    var input = $computation.value;
+    var algebraType = readConfig();
+    var maybeResult = evaluate(algebraType, input);
+    if (maybeResult instanceof ParseError) {
         $error.style.display = 'block';
-        $errorMessage.innerText = result.msg;
-        $errorInput.innerHTML = frameError(result, text);
+        $errorMessage.innerText = maybeResult.msg;
+        $errorInput.innerHTML = frameError(maybeResult, input);
     }
     else {
         $error.style.display = 'none';
-        resultSchur = result;
     }
-    var resultStr = schurString(resultSchur);
-    $result.innerText = resultStr;
-    writeTable(resultSchur);
+    var lin = (maybeResult instanceof ParseError) ? algebraUnit(0) : maybeResult;
+    $result.innerText = algebraString(lin);
+    writeTable(algebraType, lin);
 }
 // Write the table of details
-function writeTable(schur) {
+function writeTable(algebraType, lin) {
     var $table = document.getElementById('decomposition');
     var $td = function () { return document.createElement('td'); };
     var $th = function () { return document.createElement('th'); };
@@ -494,11 +492,10 @@ function writeTable(schur) {
         }
         return row;
     };
-    var config = readConfig();
     var rows = [$row($th, 'Partition', 'Multiplicity', 'Dimension')];
-    for (var _i = 0, schur_3 = schur; _i < schur_3.length; _i++) {
-        var _a = schur_3[_i], part = _a.part, mult = _a.mult;
-        rows.push($row($td, '[' + part.join(', ') + ']', '' + mult, '' + ((config.algebra == 'sym') ? dimensionSymmetric(part) : dimensionInGL(config.n, part))));
+    for (var _i = 0, lin_2 = lin; _i < lin_2.length; _i++) {
+        var _a = lin_2[_i], part = _a.part, mult = _a.mult;
+        rows.push($row($td, '[' + part.join(', ') + ']', '' + mult, '' + algebraType.dimension(part)));
     }
     $table.innerHTML = '';
     for (var _b = 0, rows_1 = rows; _b < rows_1.length; _b++) {
