@@ -34,11 +34,12 @@ function isPartition(nums) {
 // partitions can be built by adding a cell in the row specified by the letter, for
 // example the word 11231 has successive partitions [1], [2], [2, 1], [2, 1, 1], and
 // [3, 1, 1], and so is a lattice word.
-// Return the corresponding partition if v is highest weight, otherwise return null.
-function hwToMaybePartition(v) {
-    var partition = [];
-    for (var i = 0; i < v.length; i++) {
-        var num = v[i];
+//    This function takes an argument which should be the partition to start from, as
+// if the function had already been run on a prefix of the word.
+function latticeWordToMaybePartition(sofar, word) {
+    var partition = sofar.slice(0);
+    for (var i = 0; i < word.length; i++) {
+        var num = word[i];
         if (num - 1 == partition.length)
             partition.push(1);
         else if (num == 1)
@@ -56,42 +57,45 @@ function hwToMaybePartition(v) {
 }
 // Convert a highest-weight crystal vertex to its corresponding partition.
 function hwToPartition(v) {
-    var result = hwToMaybePartition(v);
+    var result = latticeWordToMaybePartition([], v);
     if (result == null)
         assertOrCrash(false, "Given vertex " + v + " was not a partition");
     return result;
 }
 // Test whether a crystal element is highest-weight.
 function isLatticeWord(v) {
-    return hwToMaybePartition(v) != null;
+    return latticeWordToMaybePartition([], v) != null;
 }
 // In order to take the tensor products AxB of two crystals A, B given by highest
 // weights, we need to generate the crystal B. (All highest weight elements in A x B
 // come from a highest-weight element of A, paired with some element of B satsifying
 // extra conditions). For this we will implement the crystal f_i operator, from which
 // we can build the crystal.
-// f_i takes a crystal vertex, and either creates a new crystal vertex (with weight
-// modified by alpha_i), or kills it. Inside the tensor power of the basic crystal, it
-// has the following description. Think of each occurence of i as a (, and each i+1 as
-// a ). Other letters are ignored. f_i then acts by changing the leftmost unmatched (
-// into an i+1. We do this via a stack.
+// f_i takes a crystal vertex, and returns the index that would be modified by moving
+// along the arrow f_i, or -1 if the vertex would be killed.
+// Inside the tensor power of the basic crystal, we may describe f_i as follows.
+// Think of each occurence of i as a (, and each i+1 as a ). Other letters are ignored.
+// f_i then acts by changing the leftmost unmatched ( into an i+1. We do this via a stack.
 //   Scan the letters of the vertex from left to right, pushing the current index onto
 // the stack when we see a (, and popping from the stack when we see a ). The leftmost
 // unmatched (if any) will be found at the bottom of the stack.
+// Finally, for efficiency, we don't actually keep a stack, but just two numbers: what
+// would be at the bottom of the stack, and the height of the stack.
 function crystal_f(i, v) {
-    var stack = [];
+    var bottom = 0;
+    var size = 0;
     for (var j = 0; j < v.length; j++) {
-        if (v[j] == i)
-            stack.push(j);
+        if (v[j] == i) {
+            if (size <= 0) {
+                bottom = j;
+                size = 0;
+            }
+            size++;
+        }
         else if (v[j] == i + 1)
-            stack.pop();
+            size--;
     }
-    if (stack.length == 0)
-        return null;
-    var modify = stack[0];
-    var newvert = v.slice(0);
-    newvert[modify] = i + 1;
-    return newvert;
+    return (size <= 0) ? -1 : bottom;
 }
 // We also need to make sure it makes sense to expand the vertex in the specified
 // GL_n. For this, we introduce the "height" of a vertex, which is the maximum
@@ -112,47 +116,65 @@ var NumsSet = /** @class */ (function () {
     NumsSet.prototype.has = function (nums) { return this.elems.hasOwnProperty(nums.join("|")); };
     return NumsSet;
 }());
-// Generate the whole crystal of sl_n below the given starting vertex, which must
-// be highest-weight.
-function expandInGL(n, start) {
+function visitGLnCrystal(n, start, visit) {
     assertOrCrash(isLatticeWord(start));
     assertOrCrash(vertexHeight(start) <= n);
-    // Keep a list of elements seen in the crystal, backed by a set for fast
-    // testing of whether we have come across it before.
-    var crystal = [start];
-    var seen = new NumsSet();
-    seen.add(start);
-    // Perform a breadth-first search of the crystal.
-    var frontier = [start];
-    while (frontier.length != 0) {
-        var new_frontier = [];
-        for (var j = 0; j < frontier.length; j++) {
-            var v = frontier[j];
-            for (var i = 1; i < n; i++) {
-                var result = crystal_f(i, v);
-                if (result != null && !seen.has(result)) {
-                    seen.add(result);
-                    new_frontier.push(result);
-                }
-            }
+    // Convert each array to a string and put it in this object to keep track of
+    // what we have seen so far.
+    var seen = {};
+    // Initially, we have the top vertex.
+    seen[start.toString()] = null;
+    visit(start);
+    // The state of the DFS will be a quadruple of the following:
+    // A list giving the vertex we are currently at, modified as we move around the crystal.
+    var mutVert = start.slice(0);
+    // A stack of which index we modified on each step down the current path.
+    var mutStack = [];
+    // A stack telling us where to resume expanding when we move back up the current path.
+    var expStack = [];
+    // An integer in the range [1, n] telling us which crystal operator to try next.
+    // If toExpand = n, then this triggers a backtrack.
+    var toExpand = 1;
+    for (;;) {
+        // Backtrack step.
+        if (toExpand == n) {
+            // Are we done with the whole crystal?
+            if (mutStack.length == 0)
+                break;
+            // Backtrack one vertex along the path.
+            mutVert[mutStack.pop()] -= 1;
+            toExpand = expStack.pop();
+            continue;
         }
-        for (var i = 0; i < new_frontier.length; i++)
-            crystal.push(new_frontier[i]);
-        frontier = new_frontier;
+        // Check along the edge f_i out of the current vertex.
+        var maybeIdx = crystal_f(toExpand, mutVert);
+        // If there was no edge, move onto the next.
+        if (maybeIdx < 0) {
+            toExpand += 1;
+            continue;
+        }
+        // We did find an outgoing edge.
+        mutVert[maybeIdx] += 1;
+        // If we've seen it before, ignore it.
+        var mutVertStr = mutVert.toString();
+        if (seen.hasOwnProperty(mutVertStr)) {
+            mutVert[maybeIdx] -= 1;
+            toExpand += 1;
+            continue;
+        }
+        // Otherwise, visit it, add it to our seen set, and move to it.
+        seen[mutVertStr] = null;
+        visit(mutVert);
+        mutStack.push(maybeIdx);
+        expStack.push(toExpand + 1);
+        toExpand = 1;
     }
-    return crystal;
 }
-// The tensor product of a highest-weight vertex with an expanded crystal
-// is now easy to write. This function returns a list of the highest-weight
-// elements in the tensor product.
-function tensorHwWithCrystal(v, crystal) {
-    var result = [];
-    for (var i = 0; i < crystal.length; i++) {
-        var tensorElem = v.concat(crystal[i]);
-        if (isLatticeWord(tensorElem))
-            result.push(tensorElem);
-    }
-    return result;
+// Return the whole crystal of GL_n below the given starting vertex.
+function expandInGL(n, start) {
+    var crystal = [];
+    visitGLnCrystal(n, start, function (v) { return crystal.push(v.slice(0)); });
+    return crystal;
 }
 // Return the hook length of the cell (i, j) of a partition. (i, j) are 
 // 0-indexed.
@@ -194,16 +216,21 @@ function partitionToHw(part) {
     return v;
 }
 // Tensor partitions as if in the representation ring of GL_n.
-function tensorPartitions(n, part1, part2) {
-    assertOrCrash(n >= 2 && isPartition(part1) && isPartition(part2));
+function tensorPartitions(n, partLeft, partRight) {
+    assertOrCrash(n >= 2 && isPartition(partLeft) && isPartition(partRight));
     // Optimisation: check which one has smaller dimension, and put it on the right.
-    var _a = [dimensionInGL(n, part1), dimensionInGL(n, part2)], dim1 = _a[0], dim2 = _a[1];
+    var _a = [dimensionInGL(n, partLeft), dimensionInGL(n, partRight)], dim1 = _a[0], dim2 = _a[1];
     if (dim1 < dim2)
-        _b = [part2, part1], part1 = _b[0], part2 = _b[1];
-    var _c = [partitionToHw(part1), partitionToHw(part2)], v1 = _c[0], v2 = _c[1];
-    var crystal2 = expandInGL(n, v2);
-    var newHws = tensorHwWithCrystal(v1, crystal2);
-    return newHws.map(hwToPartition);
+        _b = [partRight, partLeft], partLeft = _b[0], partRight = _b[1];
+    // Now, traverse the crystal and accumulate those vertices which induce a highest-weight
+    // in the tensor product.
+    var partitions = [];
+    visitGLnCrystal(n, partitionToHw(partRight), function (v) {
+        var maybePartition = latticeWordToMaybePartition(partLeft, v);
+        if (maybePartition != null)
+            partitions.push(maybePartition);
+    });
+    return partitions;
     var _b;
 }
 /// <reference path="crystal.ts"/>
@@ -270,7 +297,7 @@ var AlgebraType = /** @class */ (function () {
     };
     // Return in which GL_n the two partitions should be tensored.
     AlgebraType.prototype.tensorIn = function (part1, part2) {
-        return (this.algebra == 'gl') ? this.n : part1.length + part2.length + 1;
+        return (this.algebra == 'gl') ? this.n : part1.length + part2.length;
     };
     // Dimension of the irreducible corresponding to the given partition.
     AlgebraType.prototype.dimension = function (part) {
@@ -294,6 +321,14 @@ function algebraMul(type) {
             var _b = sofar_1[_a], part1 = _b.part, mult1 = _b.mult;
             for (var _c = 0, _d = lins[i]; _c < _d.length; _c++) {
                 var _e = _d[_c], part2 = _e.part, mult2 = _e.mult;
+                if (part1.length == 0) {
+                    product.push({ part: part2, mult: mult1 * mult2 });
+                    continue;
+                }
+                if (part2.length == 0) {
+                    product.push({ part: part1, mult: mult1 * mult2 });
+                    continue;
+                }
                 for (var _f = 0, _g = tensorPartitions(type.tensorIn(part1, part2), part1, part2); _f < _g.length; _f++) {
                     var part = _g[_f];
                     product.push({ part: part, mult: mult1 * mult2 });
@@ -440,7 +475,7 @@ function extractNums(str) {
         return [];
     return matches.map(function (s) { return parseInt(s, 10); });
 }
-/// <reference path="parse.ts"/>
+/// <reference path="src/parse.ts"/>
 // Read a configuration out of the config form.
 function readConfig() {
     var $checked = document.querySelector('input[name="algebra"]:checked');
@@ -518,10 +553,11 @@ function frameError(err, str) {
 var $computationForm = document.getElementById('computationForm');
 $computationForm.addEventListener('submit', function (event) {
     event.preventDefault();
-    doComputation();
 });
 $computationForm.addEventListener('change', function (event) {
+    event.preventDefault();
     doComputation();
 });
 // Fire inital computation.
 doComputation();
+//# sourceMappingURL=symfunc.js.map
