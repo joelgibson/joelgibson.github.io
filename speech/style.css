@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css?family=Source+Serif+Pro');
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Source Serif Pro', serif;
+}
+
+body {
+    margin: 5px;
+    display: grid;
+    grid-template-columns: 1;
+}
+
+nav {
+    display: flex;
+    border-bottom: 1px solid black;
+    font-size: 16pt;
+    margin-bottom: 0.2em
+}
+nav button {
+    display: block;
+    min-width: 1em;
+    background: none;
+    font-size: 0.8em;
+    border: none;
+    border-left: 1px solid black;
+    padding: 0 0.2em;
+}
+nav h1 {
+    font-size: 1em;
+    padding: 0;
+}
+.expand {
+    flex-grow: 100;
+}
+#langtype {
+    text-transform: uppercase;
+}
+p#choice {
+    margin-bottom: 0.3em;
+}
+
+ul.menu {
+    display: grid;
+    align-items: center;
+}
+ul.menu li {
+    border: 1px black solid;
+    list-style: none;
+    text-align: center;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    font-size: 1.3em;
+    line-height: 1.6em;
+}
+ul.phonemes {
+    grid-template-columns: repeat(8, 1fr);
+}
+ul.types {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.results {
+    display: grid;
+    grid-template-columns: 2fr 8fr;
+}
+
+dt.heading, dd.heading {
+    font-weight: bold;
+    margin-bottom: 0.2em;
+}
+
+p {
+    margin-bottom: 0.5em;
+}
+p button {
+    background: none;
+    font-size: 1em;
+    border: none;
+    color: blue;
+    font-weight: bold;
+}
+button:hover {
+    cursor: pointer;
+}
