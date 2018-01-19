@@ -9565,8 +9565,14 @@ var _user$project$Speech$vowelShapesResults = F2(
 					return '[abcdefklmqryzGH]';
 				case 'SConsonant':
 					return '[^abcdefklmqryzGH]';
+				case 'SStop':
+					return '[giotAE]';
+				case 'SFricative':
+					return '[jnCDFILM]';
 				case 'SAny':
 					return '.';
+				case 'SStar':
+					return '.*';
 				default:
 					return _p1._0.$char;
 			}
@@ -9900,7 +9906,10 @@ var _user$project$Speech$getMinPairs = F4(
 var _user$project$Speech$SPho = function (a) {
 	return {ctor: 'SPho', _0: a};
 };
+var _user$project$Speech$SStar = {ctor: 'SStar'};
 var _user$project$Speech$SAny = {ctor: 'SAny'};
+var _user$project$Speech$SFricative = {ctor: 'SFricative'};
+var _user$project$Speech$SStop = {ctor: 'SStop'};
 var _user$project$Speech$SConsonant = {ctor: 'SConsonant'};
 var _user$project$Speech$SVowel = {ctor: 'SVowel'};
 
@@ -9986,28 +9995,14 @@ var _user$project$Main$viewMatches = F2(
 		return _elm_lang$core$List$concat(
 			A2(_elm_lang$core$List$map, rowFunc, matches));
 	});
-var _user$project$Main$showSearchType = F2(
-	function (lang, stype) {
-		var _p7 = stype;
-		switch (_p7.ctor) {
-			case 'SVowel':
-				return 'Vowel';
-			case 'SConsonant':
-				return 'Consonant';
-			case 'SAny':
-				return 'Any';
-			default:
-				return A2(_user$project$Speech$getLangStr, lang, _p7._0);
-		}
-	});
 var _user$project$Main$aboutMinPairs = 'A minimal pair is a pair of words which differ in one phoneme each, for example \"cat\" and \"mat\".\n   Use the keyboard below to choose two phonemes.';
 var _user$project$Main$updateNoCmd = F2(
 	function (msg, model) {
-		var _p8 = msg;
-		switch (_p8.ctor) {
+		var _p7 = msg;
+		switch (_p7.ctor) {
 			case 'ChangeLang':
-				var _p9 = _p8._0;
-				if (_p9.ctor === 'IPA') {
+				var _p8 = _p7._0;
+				if (_p8.ctor === 'IPA') {
 					return _elm_lang$core$Native_Utils.update(
 						model,
 						{lang: _user$project$Speech$ARPA});
@@ -10017,21 +10012,21 @@ var _user$project$Main$updateNoCmd = F2(
 						{lang: _user$project$Speech$IPA});
 				}
 			case 'Keypress':
-				var _p12 = _p8._0;
-				var _p10 = _elm_lang$core$List$length(model.selection);
-				if (_p10 === 2) {
+				var _p11 = _p7._0;
+				var _p9 = _elm_lang$core$List$length(model.selection);
+				if (_p9 === 2) {
 					return _elm_lang$core$Native_Utils.update(
 						model,
 						{
 							selection: {
 								ctor: '::',
-								_0: _p12,
+								_0: _p11,
 								_1: {ctor: '[]'}
 							}
 						});
 				} else {
-					var _p11 = A2(_elm_lang$core$List$member, _p12, model.selection);
-					if (_p11 === true) {
+					var _p10 = A2(_elm_lang$core$List$member, _p11, model.selection);
+					if (_p10 === true) {
 						return model;
 					} else {
 						return _elm_lang$core$Native_Utils.update(
@@ -10042,15 +10037,15 @@ var _user$project$Main$updateNoCmd = F2(
 									model.selection,
 									{
 										ctor: '::',
-										_0: _p12,
+										_0: _p11,
 										_1: {ctor: '[]'}
 									})
 							});
 					}
 				}
 			case 'ChangeEnd':
-				var _p13 = model.end;
-				if (_p13.ctor === 'StartingWith') {
+				var _p12 = model.end;
+				if (_p12.ctor === 'StartingWith') {
 					return _elm_lang$core$Native_Utils.update(
 						model,
 						{end: _user$project$Speech$EndingWith});
@@ -10060,17 +10055,17 @@ var _user$project$Main$updateNoCmd = F2(
 						{end: _user$project$Speech$StartingWith});
 				}
 			case 'WordsResult':
-				if (_p8._0.ctor === 'Err') {
+				if (_p7._0.ctor === 'Err') {
 					return model;
 				} else {
 					return _elm_lang$core$Native_Utils.update(
 						model,
-						{words: _p8._0._0});
+						{words: _p7._0._0});
 				}
 			case 'ChangePage':
 				return _elm_lang$core$Native_Utils.update(
 					model,
-					{page: _p8._0});
+					{page: _p7._0});
 			case 'PatternKeyPress':
 				return _elm_lang$core$Native_Utils.update(
 					model,
@@ -10080,7 +10075,7 @@ var _user$project$Main$updateNoCmd = F2(
 							model.pattern,
 							{
 								ctor: '::',
-								_0: _p8._0,
+								_0: _p7._0,
 								_1: {ctor: '[]'}
 							})
 					});
@@ -10105,8 +10100,8 @@ var _user$project$Main$subscriptions = function (model) {
 };
 var _user$project$Main$fetchWordList = A2(_elm_lang$http$Http$get, 'words.json', _user$project$Speech$wordListDecoder);
 var _user$project$Main$pageTitle = function (page) {
-	var _p14 = page;
-	if (_p14.ctor === 'MinPairs') {
+	var _p13 = page;
+	if (_p13.ctor === 'MinPairs') {
 		return 'Minimal Pairs';
 	} else {
 		return 'Vowel Shapes';
@@ -10119,8 +10114,8 @@ var _user$project$Main$Model = F6(
 var _user$project$Main$VowelShapes = {ctor: 'VowelShapes'};
 var _user$project$Main$MinPairs = {ctor: 'MinPairs'};
 var _user$project$Main$nextPage = function (page) {
-	var _p15 = page;
-	if (_p15.ctor === 'MinPairs') {
+	var _p14 = page;
+	if (_p14.ctor === 'MinPairs') {
 		return _user$project$Main$VowelShapes;
 	} else {
 		return _user$project$Main$MinPairs;
@@ -10139,6 +10134,25 @@ var _user$project$Main$PatternKeyPress = function (a) {
 	return {ctor: 'PatternKeyPress', _0: a};
 };
 var _user$project$Main$typeKeyboard = function () {
+	var textFor = function (stype) {
+		var _p15 = stype;
+		switch (_p15.ctor) {
+			case 'SVowel':
+				return 'Vowel';
+			case 'SConsonant':
+				return 'Consonant';
+			case 'SStop':
+				return 'Stop';
+			case 'SFricative':
+				return 'Fricative';
+			case 'SAny':
+				return 'Any Phoneme';
+			case 'SStar':
+				return 'Zero or more of any';
+			default:
+				return 'ERROR: Should not be rendered';
+		}
+	};
 	var toLi = function (stype) {
 		return A2(
 			_elm_lang$html$Html$li,
@@ -10151,7 +10165,7 @@ var _user$project$Main$typeKeyboard = function () {
 			{
 				ctor: '::',
 				_0: _elm_lang$html$Html$text(
-					A2(_user$project$Main$showSearchType, _user$project$Speech$IPA, stype)),
+					textFor(stype)),
 				_1: {ctor: '[]'}
 			});
 	};
@@ -10178,7 +10192,19 @@ var _user$project$Main$typeKeyboard = function () {
 					_1: {
 						ctor: '::',
 						_0: _user$project$Speech$SAny,
-						_1: {ctor: '[]'}
+						_1: {
+							ctor: '::',
+							_0: _user$project$Speech$SStar,
+							_1: {
+								ctor: '::',
+								_0: _user$project$Speech$SStop,
+								_1: {
+									ctor: '::',
+									_0: _user$project$Speech$SFricative,
+									_1: {ctor: '[]'}
+								}
+							}
+						}
 					}
 				}
 			}));
@@ -10260,6 +10286,26 @@ var _user$project$Main$viewNav = function (model) {
 		});
 };
 var _user$project$Main$viewVowelShapes = function (model) {
+	var showSearchType = F2(
+		function (lang, stype) {
+			var _p16 = stype;
+			switch (_p16.ctor) {
+				case 'SVowel':
+					return 'V';
+				case 'SConsonant':
+					return 'C';
+				case 'SAny':
+					return '?';
+				case 'SStar':
+					return '*';
+				case 'SStop':
+					return '!';
+				case 'SFricative':
+					return 'Fric';
+				default:
+					return A2(_user$project$Speech$getLangStr, lang, _p16._0);
+			}
+		});
 	var toLi = function (word) {
 		return A2(
 			_elm_lang$html$Html$li,
@@ -10283,8 +10329,8 @@ var _user$project$Main$viewVowelShapes = function (model) {
 			});
 	};
 	var maybeClear = function () {
-		var _p16 = model.pattern;
-		if (_p16.ctor === '[]') {
+		var _p17 = model.pattern;
+		if (_p17.ctor === '[]') {
 			return {ctor: '[]'};
 		} else {
 			return {
@@ -10339,7 +10385,7 @@ var _user$project$Main$viewVowelShapes = function (model) {
 											', ',
 											A2(
 												_elm_lang$core$List$map,
-												_user$project$Main$showSearchType(model.lang),
+												showSearchType(model.lang),
 												model.pattern))),
 									_1: {
 										ctor: '::',
@@ -10356,9 +10402,9 @@ var _user$project$Main$viewVowelShapes = function (model) {
 							ctor: '::',
 							_0: A2(
 								_user$project$Main$phonemeKeyboard,
-								function (_p17) {
+								function (_p18) {
 									return _user$project$Main$PatternKeyPress(
-										_user$project$Speech$SPho(_p17));
+										_user$project$Speech$SPho(_p18));
 								},
 								model),
 							_1: {
@@ -10493,8 +10539,8 @@ var _user$project$Main$viewMinPairs = function (model) {
 		});
 };
 var _user$project$Main$view = function (model) {
-	var _p18 = model.page;
-	if (_p18.ctor === 'MinPairs') {
+	var _p19 = model.page;
+	if (_p19.ctor === 'MinPairs') {
 		return _user$project$Main$viewMinPairs(model);
 	} else {
 		return _user$project$Main$viewVowelShapes(model);

@@ -58,7 +58,7 @@ ul.phonemes {
     grid-template-columns: repeat(8, 1fr);
 }
 ul.types {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
 }
 
 .results {
