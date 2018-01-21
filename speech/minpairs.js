@@ -9569,6 +9569,8 @@ var _user$project$Speech$vowelShapesResults = F2(
 					return '[giotAE]';
 				case 'SFricative':
 					return '[jnCDFILM]';
+				case 'SNasal':
+					return '[vwx]';
 				case 'SAny':
 					return '.';
 				case 'SStar':
@@ -9908,6 +9910,7 @@ var _user$project$Speech$SPho = function (a) {
 };
 var _user$project$Speech$SStar = {ctor: 'SStar'};
 var _user$project$Speech$SAny = {ctor: 'SAny'};
+var _user$project$Speech$SNasal = {ctor: 'SNasal'};
 var _user$project$Speech$SFricative = {ctor: 'SFricative'};
 var _user$project$Speech$SStop = {ctor: 'SStop'};
 var _user$project$Speech$SConsonant = {ctor: 'SConsonant'};
@@ -10145,6 +10148,8 @@ var _user$project$Main$typeKeyboard = function () {
 				return 'Stop';
 			case 'SFricative':
 				return 'Fricative';
+			case 'SNasal':
+				return 'Nasal';
 			case 'SAny':
 				return 'Any Phoneme';
 			case 'SStar':
@@ -10191,17 +10196,21 @@ var _user$project$Main$typeKeyboard = function () {
 					_0: _user$project$Speech$SConsonant,
 					_1: {
 						ctor: '::',
-						_0: _user$project$Speech$SAny,
+						_0: _user$project$Speech$SNasal,
 						_1: {
 							ctor: '::',
-							_0: _user$project$Speech$SStar,
+							_0: _user$project$Speech$SAny,
 							_1: {
 								ctor: '::',
-								_0: _user$project$Speech$SStop,
+								_0: _user$project$Speech$SStar,
 								_1: {
 									ctor: '::',
-									_0: _user$project$Speech$SFricative,
-									_1: {ctor: '[]'}
+									_0: _user$project$Speech$SStop,
+									_1: {
+										ctor: '::',
+										_0: _user$project$Speech$SFricative,
+										_1: {ctor: '[]'}
+									}
 								}
 							}
 						}
@@ -10294,6 +10303,8 @@ var _user$project$Main$viewVowelShapes = function (model) {
 					return 'V';
 				case 'SConsonant':
 					return 'C';
+				case 'SNasal':
+					return 'N';
 				case 'SAny':
 					return '?';
 				case 'SStar':
