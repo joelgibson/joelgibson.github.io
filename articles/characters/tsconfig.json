@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "target": "es3",
+        "module": "none",
+        "outFile": "characters.js",
+        "sourceMap": true
+    },
+    "files": [
+        "characters.ts"
+    ]
+}

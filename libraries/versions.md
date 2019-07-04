@@ -1,0 +1,1 @@
+KaTeX: Release v0.10.2: https://github.com/KaTeX/KaTeX/releases/tag/v0.10.2
